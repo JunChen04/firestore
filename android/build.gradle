@@ -1,0 +1,20 @@
+allprojects {
+    ext.kotlin_version = '1.8.0-Beta'
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://custom.repository.url" }
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

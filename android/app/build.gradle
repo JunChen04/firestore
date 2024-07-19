@@ -1,0 +1,80 @@
+plugins {
+    id "com.android.application"
+    id 'com.google.gms.google-services'
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode", "1")
+def flutterVersionName = localProperties.getProperty("flutter.versionName", "1.0")
+
+android {
+    namespace = "com.example.testing"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.testing"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22" // Specify your Kotlin version
+
+    // Firebase and other dependencies
+    implementation 'com.google.firebase:firebase-analytics'
+
+    // Exclude older Kotlin standard libraries to prevent duplicate classes
+    implementation ('com.some.library:library-name:1.0.0') {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    }
+
+    // Exclude old versions of kotlin-stdlib
+    configurations.all {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    }
+}
+
+// Check for duplicate classes task
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+    if (task.name == "compileDebugUnitTestKotlin") {
+        task.mustRunAfter(":app:compileDebugKotlin")
+    }
+}
+
+tasks.register("printCompileDebugUnitTestKotlinOutputs") {
+    dependsOn(":app:compileDebugUnitTestKotlin")
+    doLast {
+        def outputFiles = tasks.named(":app:compileDebugUnitTestKotlin").get().outputs.files
+        println "CompileDebugUnitTestKotlin Outputs: ${outputFiles.files}"
+    }
+}
